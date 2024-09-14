@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app2-config
+  name: app-two-config
 data:
   index.html: |
     <html>

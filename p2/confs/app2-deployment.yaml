@@ -1,38 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app2
+  name: app-two
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: app2
+      app: app-two
   template:
     metadata:
       labels:
-        app: app2
+        app: app-two
     spec:
       containers:
-      - name: app2
+      - name: app-two
         image: nginx:latest
         ports:
           - containerPort: 80
         volumeMounts:
-        - name: app2-volume
+        - name: app-two-volume
           mountPath: /usr/share/nginx/html
       volumes:
-      - name: app2-volume
+      - name: app-two-volume
         configMap:
-          name: app2-config
+          name: app-two-config
         
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: app2
+  name: app-two
 spec:
   selector:
-    app: app2
+    app: app-two
   ports:
   - protocol: TCP
     port: 80
