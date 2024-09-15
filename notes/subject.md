@@ -226,6 +226,55 @@ Argo CDをインストールする。
       - username: admin
       - password: `argocd admin initial-password -n argocd`で取得する
 
+#### デプロイマニュフェストを同期設定するためのApplicationリソースを作成
+
+- `confs/application.yaml`を作成する
+- デプロイする
+  - ```bash
+    kubectl apply -f confs/application.yaml
+    ```
+デプロイできた。
+
+![alt text](images/image.png)
+
+![alt text](images/image-1.png)
+
+`wil42/playground:v1`のマニフェストがデプロイされていることが確認できる。
+
+![alt text](images/image-2.png)
+
+#### v2への変更
+
+Wil42 Appのマニュフェストを配置しているリポジトリで、wil42/playground:v2に変更したマニフェストをPushする。
+
+```bash
+$ sed -i 's/wil42\/playground\:v1/wil42\/playground\:v2/g' application.yaml`
+$ git diff
+diff --git a/manifests/application.yaml b/manifests/application.yaml
+index 594583e..9b78858 100644
+--- a/manifests/application.yaml
++++ b/manifests/application.yaml
+@@ -17,7 +17,7 @@ spec:
+     spec:
+       containers:
+       - name: wil42-playground
+-        image: wil42/playground:v1
++        image: wil42/playground:v2
+         ports:
+         - containerPort: 8888
+ ---
+$ git add .
+$ git commit -m "v2"
+[...]
+To github.com:oooooorriiiii/42-ymori-Inception-of-Things-ArgoCD.git
+   7232377..4c6b030  master -> master
+```
+
+Argo CDのUIを確認すると、v2に変更されていることが確認できる。
+
+![alt text](images/image-3.png)
+
+
 ## Tips
 
 利用するすべてのプロジェクトのバージョンは最新のものにしておいたほうがよい。
