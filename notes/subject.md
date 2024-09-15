@@ -274,6 +274,17 @@ Argo CDのUIを確認すると、v2に変更されていることが確認でき
 
 ![alt text](images/image-3.png)
 
+### シェルスクリプトに落とし込む
+
+今までやった設定をシェルスクリプトに落とし込む。
+
+1. Docker, kubectl, k3dのインストール
+   - `setup-k3d-cluster-x86-64.sh`参照
+   - Dockerのインストールでdockerをsudoなしで実行するために、再起動が必要。または`newgrp docker`でグループを再読み込みする。
+     - [Linux post-installation steps for Docker Engine](https://docs.docker.com/engine/install/linux-postinstall/)
+2. k3dクラスタの作成
+   - `create-k3d-cluster.sh`参照
+
 
 ## Tips
 
