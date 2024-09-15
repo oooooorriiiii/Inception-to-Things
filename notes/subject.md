@@ -77,7 +77,8 @@ K3sとK3s、Vagrantの使い方を学ぶ課題。Ingressを使用したいので
 
 ## Part3
 
-VagrantではなくDocker(k3d)を使用する
+- VagrantではなくDocker(k3d)を使用する
+  - （kindとだいたい同じようなもの）
 使用するPackageなどをインストールするためのスクリプトを作成しておくとよい。
 - 以下の２つのnamespaceを作成する
   - `argocd`
@@ -89,7 +90,126 @@ VagrantではなくDocker(k3d)を使用する
       - メンバーのlogin名をリポジトリの名前に入れ込んでおいてください
     - taggingによって２つのバージョンを管理できるようにしておく
 
-### Argo CD
+### k3dのインストール
+
+- ドキュメントに沿ってk3dをインストールする
+  - [k3d - Installation](https://k3d.io/v5.7.4/#installation)
+- クラスタをデプロイする
+  - `k3d cluster create <cluster-name>`
+- クラスタのundeployは以下のコマンド
+  - `k3d cluster delete <cluster-name>`
+
+### Wil application。～GitOpsを添えずに～
+
+#### v1のデプロイ
+
+まず、GitOpsは考慮せずに、Wil prayground appをデプロイしてみる。
+
+```application.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wil42-playground-deployment
+  namespace: dev
+  labels:
+    app: wil42-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wil42-playground
+  template:
+    metadata:
+      labels:
+        app: wil42-playground
+    spec:
+      containers:
+      - name: wil42-playground
+        image: wil42/playground:v1
+        ports:
+        - containerPort: 8888
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wil42-playground-service
+  namespace: dev
+spec:
+  selector:
+    app: wil42-playground
+  ports:
+  - protocol: TCP
+    port: 8888
+    targetPort: 8888
+  type: LoadBalancer
+```
+
+デプロイする。
+
+```bash
+kubectl create namespace dev # dev namespaceを作成
+kubectl apply -f application.yaml # アプリケーションをデプロイ
+```
+
+クラスタ外からアクセスするためにサービスをポートフォワードする。
+
+```bash
+kubectl port-forward svc/wil42-playground-service -n dev 8888:8888 # サービスをポートフォワード
+```
+
+curlで確認。
+
+```bash
+curl 127.0.0.1:8888
+
+# 以下のようなレスポンスが返ってくればOK
+{"status":"ok", "message": "v1"}
+```
+
+#### v2への変更
+
+次に、`image: wil42/playground:v2`に変更してデプロイする。
+上のapplication.yamlを以下のように変更する。
+
+```application.yaml
+[...]
+    spec:
+      containers:
+      - name: wil42-playground
+        image: wil42/playground:v2 # v2に変更
+[...]
+```
+
+```bash
+kubectl apply -f application.yaml # アプリケーションを更新
+```
+
+curlで確認。
+
+```bash
+curl 127.0.0.1:8888
+
+# 以下のようなレスポンスが返ってくればOK。v2に変わっている。
+{"status":"ok", "message": "v2"}
+```
+
+### wil application。～GitOpsを添えて～
+
+上のアプリケーションの更新をGitOpsで行うことが、Part3の学習の目的である。
+
+`~GitOpsを添えずに~`で行なった、「`application.yaml`の変更 -> `kubectl apply -f application.yaml`」の処理を、「変更した`application.yaml`をGitHubにpush -> Argo CDが自動的にデプロイ」として処理することがGitOpsである。
+
+#### GitHubにマニュフェストをpushする
+
+`application.yaml`をPushするためのリポジトリを作成する。このリポジトリには`image: wil42/playground:v1`のマニフェストをPushしておく。
+
+- https://github.com/oooooorriiiii/42-ymori-Inception-of-Things-ArgoCD
+
+
+#### Argo CDのインストールとデプロイ
+
+Argo CDをインストールする。
+基本的には、Argo CDのドキュメントに沿ってインストールすればよい。
 
 - [Getting Started - Argo CD](https://argo-cd.readthedocs.io/en/stable/getting_started/)
   - 2. Download Argo CD CLI
@@ -108,10 +228,11 @@ VagrantではなくDocker(k3d)を使用する
 
 ## Tips
 
-- dockerのバージョンは最新にしておく。
-  - CNCFのプロジェクトではバージョンの不一致で諸々の問題が発生することがあるため、バージョンを揃えておくとよい。
-    - 今回の課題で引いたバグの例
-      - https://github.com/argoproj/argo-cd/issues/11647
-      - https://github.com/argoproj/argo-cd/issues/9809
+利用するすべてのプロジェクトのバージョンは最新のものにしておいたほうがよい。
 
+バージョンの不一致で諸々の問題が発生することがあるため、バージョンを揃えておきましょう。
 
+- kubernetesのバージョンは最新ですか？
+  - `k3d --version`で確認
+- dockerのバージョンは最新ですか？
+  - `docker --version`で確認

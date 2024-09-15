@@ -18,13 +18,7 @@
     - KubernetesのWorkerに相当する
 
 
-## ネットワークインターフェースについて
-
-- subjectの記載では、`eth1`を使用するように指定されているが？
-  - Linuxにおいてネットワークインターフェースの命名規則が変わったらしい
-    - `eth0` -> `enp0s3` に相当
-    - `eth1` -> `enp0s8` に相当
-    - [CentOS 7のネットワーク名「enp1s0」という文字列の謎に迫る](https://qiita.com/fetaro/items/b61282130fa638de4528)
+## 
 
 ## TLS証明書
 
