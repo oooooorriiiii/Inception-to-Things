@@ -284,6 +284,9 @@ Argo CDのUIを確認すると、v2に変更されていることが確認でき
      - [Linux post-installation steps for Docker Engine](https://docs.docker.com/engine/install/linux-postinstall/)
 2. k3dクラスタの作成
    - `create-k3d-cluster.sh`参照
+3. Argo CDのインストールとデプロイ
+   - `deploy-argocd.sh`参照
+   - ローカルでもVMでもArgo CDのサイトにアクセスできるように`0.0.0.0:8080`でポートフォワードしている。ローカルでデプロイしているときは`http://localhost:8080`でアクセスできる。VMでデプロイしているときは`http://<VMのIPアドレス>:8080`でアクセスできる。あまり良い方法ではないが、設定は全部スクリプトに落とせと言われているので。。。
 
 
 ## Tips

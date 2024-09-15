@@ -42,3 +42,13 @@ if ! command -v "k3d" >/dev/null 2>&1; then
 else
     echo "k3s is already installed."
 fi
+
+# Argo CD CLI
+# https://argo-cd.readthedocs.io/en/stable/cli_installation/
+if ! command -v "argocd" >/dev/null 2>&1; then
+    curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+    sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+    rm argocd-linux-amd64
+else
+    echo "argocd is already installed."
+fi
