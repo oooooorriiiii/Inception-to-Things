@@ -42,5 +42,3 @@ if ! command -v "k3d" >/dev/null 2>&1; then
 else
     echo "k3s is already installed."
 fi
-
-k3d cluster create ymoriCluster
