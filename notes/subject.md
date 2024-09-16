@@ -66,6 +66,8 @@ K3sとK3s、Vagrantの使い方を学ぶ課題。Ingressを使用したいので
 
 ## Part2
 
+### 要件
+
 - Virtual machine1つとserver modeでインストールされたK3sが必要
 - K3sインスタンスで実行できるウェブアプリケーションを適当に３つ選ぶ
 - Host
@@ -74,6 +76,10 @@ K3sとK3s、Vagrantの使い方を学ぶ課題。Ingressを使用したいので
 - ホストが指定されたら、そのホストにアクセスできるようにする
 - デフォルトはapp3
 - 実行コマンド curl -H "Host:app2.com" 192.168.42.110
+
+### イメージ
+
+![p2](images/p2.drawio.svg)
 
 ## Part3
 
@@ -89,6 +95,10 @@ K3sとK3s、Vagrantの使い方を学ぶ課題。Ingressを使用したいので
       - Configuration fileを自分のリポジトリにpushしておく
       - メンバーのlogin名をリポジトリの名前に入れ込んでおいてください
     - taggingによって２つのバージョンを管理できるようにしておく
+
+### イメージ
+
+![p3](images/p3.drawio.svg)
 
 ### k3dのインストール
 
@@ -288,6 +298,16 @@ Argo CDのUIを確認すると、v2に変更されていることが確認でき
    - `deploy-argocd.sh`参照
    - ローカルでもVMでもArgo CDのサイトにアクセスできるように`0.0.0.0:8080`でポートフォワードしている。ローカルでデプロイしているときは`http://localhost:8080`でアクセスできる。VMでデプロイしているときは`http://<VMのIPアドレス>:8080`でアクセスできる。あまり良い方法ではないが、設定は全部スクリプトに落とせと言われているので。。。
 
+## Bonus
+
+```bash
+k3d cluster create <cluster-name>
+
+## Argo CDのインストール
+## https://argo-cd.readthedocs.io/en/stable/
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
 
 ## Tips
 
