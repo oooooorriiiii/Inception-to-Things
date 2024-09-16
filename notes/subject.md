@@ -15,6 +15,10 @@ K3sとK3s、Vagrantの使い方を学ぶ課題。Ingressを使用したいので
   - K3sをagent modeでインストールする
 - パスワードなしでSSH接続できるようにする
 
+### イメージ
+
+![p1](images/p1.drawio.svg)
+
 ### Vagrantfile
 
 1. `vagrant init`でVagrantfileを作成する
