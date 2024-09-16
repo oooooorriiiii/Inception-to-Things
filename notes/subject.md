@@ -315,6 +315,8 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 
 ## Tips
 
+### バージョンの確認
+
 利用するすべてのプロジェクトのバージョンは最新のものにしておいたほうがよい。
 
 バージョンの不一致で諸々の問題が発生することがあるため、バージョンを揃えておきましょう。
@@ -323,3 +325,13 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
   - `k3d --version`で確認
 - dockerのバージョンは最新ですか？
   - `docker --version`で確認
+
+
+### WindowsでVagrant実行するときの注意
+
+- [VirtualBox で Failed to open/create the internal network 'HostInterfaceNetworking-VirtualBox Host-Only Ethernet Adapter' が出た時の対処](https://qiita.com/0xC0FFEE/items/ae80a7d767144c2e1992)
+  - `インターネットプロトコルバージョン6(TCP/IPv6)` のチェックを外す
+
+### TLS証明書
+
+- [KubernetesのTLS証明書](https://qiita.com/nsawa/items/4f11ac89707aad2c3d4a)
