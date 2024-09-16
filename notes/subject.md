@@ -85,6 +85,14 @@ K3sとK3s、Vagrantの使い方を学ぶ課題。Ingressを使用したいので
 
 ![p2](images/p2.drawio.svg)
 
+### 実装
+
+イメージ図の通りにアプリケーションをデプロイするだけです。。。
+
+#### 実装のポイント？
+
+- `service`で`type`を指定しないと、`ClusterIP`になる。今回は`ClusterIP`で指定しておき、`Ingress`のバックエンドとして解決することで外部からアクセスできるようにする。
+
 ## Part3
 
 - VagrantではなくDocker(k3d)を使用する
