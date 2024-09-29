@@ -1,6 +1,6 @@
 # Subject note
 
-K3sとK3s、Vagrantの使い方を学ぶ課題。Ingressを使用したいので、kindではなくK3sを使用する。
+K3sとK3d、Vagrantの使い方を学ぶ課題。Ingressを使用したいので、kindではなくK3sを使用する。
 
 ## Part 1
 
@@ -312,6 +312,29 @@ Argo CDのUIを確認すると、v2に変更されていることが確認でき
 
 ## Bonus
 
+### GitLabのインストール
+
+GitLabの公式のサイトを参考にインストールする。
+
+- [Deploy the GitLab Helm chart](https://docs.gitlab.com/charts/installation/deployment.html#deploy-using-helm)
+
+```bash
+
+```
+
+#### traefikの削除
+
+k3dのデフォルトのIngress Controllerはtraefikであるが、GitLabのインストール時にはNGINX Ingress Controllerが必要となるため、traefikを削除する。
+traefikを削除しないと、k3dで標準搭載されている`traefik`と`gitlab-nginx-ingress-controller`のポートが競合してしまう。
+
+※GitLab側でtraefikを利用したり、nginx-ingress-controllerのポートを変更したりできそうだが、情報が少ないため、今回はNGINX Ingress Controllerを利用する。
+参考) [Using Traefik](https://docs.gitlab.com/charts/charts/traefik/#fips-compliant-traefik)
+
+```bash
+kubectl delete svc traefik -n kube-system
+```
+
+
 ```bash
 k3d cluster create <cluster-name>
 
@@ -334,6 +357,11 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 - dockerのバージョンは最新ですか？
   - `docker --version`で確認
 
+### Windowsの`/etc/hosts`はどこにあるのか
+
+名前解決をさせるためには、`/etc/hosts`に名前解決をさせるためのエントリを追加する必要がある。
+Linuxでは`/etc/hosts`にエントリを追加するが、Windowsでは`C:\Windows\System32\drivers\etc\hosts`にエントリを追加する必要がある。
+WLS上で`/etc/hosts`を編集してもWindows側の`C:\Windows\System32\drivers\etc\hosts`には反映されないので注意する。
 
 ### WindowsでVagrant実行するときの注意
 
