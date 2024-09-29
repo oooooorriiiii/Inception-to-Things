@@ -14,6 +14,8 @@ deploy-gitlab:
 	--set gitlab.webservice.ingress.tls.enabled=false
 	kubectl wait --for=condition=ready --timeout=15m pod -l app=webservice -n gitlab
 
+# TODO: gitlab.webservice.ingress.tls.enabled=false が必要かどうかを確認する
+
 delete-traefik:
 	kubectl delete svc traefik -n kube-system
 

@@ -334,6 +334,10 @@ traefikを削除しないと、k3dで標準搭載されている`traefik`と`git
 kubectl delete svc traefik -n kube-system
 ```
 
+- `--set global.hosts.https=false`を設定することで、HTTPSを無効にする
+  - 今回の課題ではTLS証明書の設定を省いている
+  - これを設定しないと、サインイン後に`https`にリダイレクトされるため、`422: The change you requested was rejected.`のエラーとなる
+  - [Configure charts using globals](https://docs.gitlab.com/charts/charts/globals.html)
 
 ```bash
 k3d cluster create <cluster-name>
