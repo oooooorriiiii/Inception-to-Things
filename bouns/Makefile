@@ -8,9 +8,11 @@ deploy-gitlab:
 	kubectl create namespace gitlab
 	helm upgrade --install -n gitlab gitlab gitlab/gitlab \
 	--timeout 600s \
+	--set global.hosts.https=false \
 	--set global.hosts.domain=example.com \
 	--set certmanager-issuer.email=me@example.com \
 	--set gitlab.webservice.ingress.tls.enabled=false
+	kubectl wait --for=condition=ready --timeout=15m pod -l app=webservice -n gitlab
 
 delete-traefik:
 	kubectl delete svc traefik -n kube-system
@@ -28,5 +30,9 @@ destroy-cluster:
 	k3d cluster delete $(CLUSTER_NAME)
 
 destroy: destroy-gitlab destroy-cluster
+
+# make re
+
+re: destroy deploy
 
 # bash ./setup.sh
