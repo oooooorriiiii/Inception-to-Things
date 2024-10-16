@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: http://gitlab-webservice-default.gitlab.svc.cluster.local:8080/root/iot.git
+    repoURL: http://gitlab.example.com:8880/root/42iot.git
     targetRevision: HEAD
     path: manifests
   destination:

@@ -348,6 +348,93 @@ kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
+#### GitLabへのアクセス
+
+以下コマンドでパスワードを取得する。
+
+```bash
+kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode
+```
+
+- ログイン情報
+  - `http://gitlab.example.com:8880`
+  - username: `root`
+  - password: 上記で取得したパスワード
+
+#### GitLab上でリポジトリを作成する
+
+`git clone http://gitlab.ymori.jp:8880/<username>/<repository>.git`でリポジトリをクローンする。ログイン情報はログインしたときと同じもの。
+
+※コマンドラインへのペーストは右クリックでできる。
+
+#### GitLabリポジトリのデプロイトークンを作成する
+
+1. ［Settings］→［Repository］を選択。
+2. ［Deploy tokens］の［Expand］をクリック。
+3.  [add token]をクリックして、デプロイトークンを作成する。
+
+| 項目 | 設定値 |
+| --- | --- |
+| Name | `argocd` |
+| Expiration data | なし |
+| Username | `argocd` |
+| Scope | `read_repository` |
+
+トークンをコピーしておく.
+
+#### Secretリソースを作成する
+
+1. applocation.yamlの以下を作成したGitLabリポジトリのURLに変更する。
+
+```yaml
+stringData:
+  repoURL: http://gitlab.example.com:8880/root/42iot.git
+```
+
+2. confs/secret.yamlの`password`に上記で作成したデプロイトークンを設定する。
+3. SecretリソースをKubernetesに適用する。
+
+```bash
+kubectl apply -f confs/secret.yaml
+```
+
+### Argo CD
+
+#### Argo CDにアクセスする
+
+1. 初期パスワード確認する。
+
+```bash
+argocd admin initial-password -n argocd
+```
+
+2. Argo CDアクセスする。
+
+- ログイン情報
+  - `http://localhost:8080`
+  - username: `admin`
+  - password: 上記で取得したパスワード
+
+### デプロイマニュフェストを同期するためのApplicationリソースを作成
+
+1. applocation.yamlの以下を作成したGitLabリポジトリのURLに変更する。
+
+```yaml
+    repoURL: http://gitlab.example.com:8880/root/42iot.git
+```
+
+2. デプロイする。
+
+```bash
+kubectl apply -f confs/application.yaml
+```
+
+TODO: 以下エラーの解決
+
+Failed to load target state: failed to generate manifest for source 1 of 1: rpc error: code = Unknown desc = Get "http://gitlab.example.com:8880/root/42iot.git/info/refs?service=git-upload-pack": dial tcp 127.0.0.1:8880: connect: connection refused
+
+ingressを介しているので、gitlab.example.com が 127.0.0.1 に解決されるとこわれる？
+
 ## Tips
 
 ### バージョンの確認
@@ -366,6 +453,12 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 名前解決をさせるためには、`/etc/hosts`に名前解決をさせるためのエントリを追加する必要がある。
 Linuxでは`/etc/hosts`にエントリを追加するが、Windowsでは`C:\Windows\System32\drivers\etc\hosts`にエントリを追加する必要がある。
 WLS上で`/etc/hosts`を編集してもWindows側の`C:\Windows\System32\drivers\etc\hosts`には反映されないので注意する。
+
+PowerShellで`C:\Windows\System32\drivers\etc\hosts`を編集するためのコマンドは以下の通り。
+
+```bash
+ powershell -NoProfile -ExecutionPolicy unrestricted -Command "start notepad C:\Windows\System32\drivers\etc\hosts -verb runas"
+```
 
 ### WindowsでVagrant実行するときの注意
 

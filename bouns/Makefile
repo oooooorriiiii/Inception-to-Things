@@ -11,8 +11,8 @@ deploy-gitlab:
 	helm upgrade --install -n gitlab gitlab gitlab/gitlab \
 	--timeout 600s \
 	--set global.hosts.https=false \
-	--set global.hosts.domain=example.com \
-	--set certmanager-issuer.email=me@example.com \
+	--set global.hosts.domain=ymori.jp \
+	--set certmanager-issuer.email=ymori@student.42tokyo.jp \
 	--set gitlab.webservice.ingress.tls.enabled=false
 	kubectl wait --for=condition=ready --timeout=15m pod -l app=webservice -n gitlab
 
