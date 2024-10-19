@@ -36,6 +36,11 @@ print-argocd-pw:
 argocd-port-forward:
 	kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 127.0.0.1
 
+argocd-login:
+	$(eval ARGOCD_PASS := $(shell argocd admin initial-password -n argocd | awk 'NR==1 {print $1}'))
+	argocd login localhost:8080 --insecure --username admin --password $(ARGOCD_PASS)
+# argocd login localhost:8080 --insecure --username admin --password Z5P7-b0pH0Vlmpcq
+
 deploy: deploy-cluster deploy-gitlab delete-traefik deploy-argocd print-gitlab-pw print-argocd-pw
 
 
@@ -50,6 +55,25 @@ destroy-cluster:
 	k3d cluster delete $(CLUSTER_NAME)
 
 destroy: destroy-gitlab destroy-cluster
+
+add-gitlab-repo:
+	argocd repo add http://gitlab-webservice-default.gitlab.svc.cluster.local:8080/root/42iot.git \
+	--username root \
+	--password $(shell kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode)
+
+upload-app-gitlab:
+	git clone http://gitlab.ymori.jp:8880/root/42iot.git
+	cd 42iot && \
+	git switch --create main && \
+	mkdir manifests && \
+	cp ../confs/for-gitlab-manifests/manifests/application.yaml manifests/ && \
+	git add manifests/application.yaml && \
+	git commit -m "add manifests/application.yaml" 
+
+# git push --set-upstream origin main \
+	--username root \
+	--password $(shell kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode)
+
 
 # make re
 

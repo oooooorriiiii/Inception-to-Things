@@ -319,7 +319,7 @@ GitLabの公式のサイトを参考にインストールする。
 - [Deploy the GitLab Helm chart](https://docs.gitlab.com/charts/installation/deployment.html#deploy-using-helm)
 
 ```bash
-
+kubectl port-forward svc/argocd-server -n argocd 8080:8080 --address 127.0.0.1
 ```
 
 #### traefikの削除
@@ -357,13 +357,21 @@ kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.
 ```
 
 - ログイン情報
-  - `http://gitlab.example.com:8880`
+  - `http://gitlab.ymori.jp:8880`
   - username: `root`
   - password: 上記で取得したパスワード
+
+※ /etc/hosts に `github.ymori.jp` を追加しておく
 
 #### GitLab上でリポジトリを作成する
 
 `git clone http://gitlab.ymori.jp:8880/<username>/<repository>.git`でリポジトリをクローンする。ログイン情報はログインしたときと同じもの。
+
+| 項目 | 設定値 |
+|--|--|
+| Project name | `42iot` |
+| Project URL | `http://gitlab.ymori.jp:8880/root/42iot.git` |
+| Visibility Level | `Public` |
 
 ※コマンドラインへのペーストは右クリックでできる。
 
@@ -388,7 +396,7 @@ kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.
 
 ```yaml
 stringData:
-  repoURL: http://gitlab.example.com:8880/root/42iot.git
+  repoURL: http://gitlab.ymori.jp:8880/root/42iot.git
 ```
 
 2. confs/secret.yamlの`password`に上記で作成したデプロイトークンを設定する。
@@ -401,6 +409,12 @@ kubectl apply -f confs/secret.yaml
 ### Argo CD
 
 #### Argo CDにアクセスする
+
+0. Argo CDのUIにアクセスするためにポートフォワードする。
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 127.0.0.1
+```
 
 1. 初期パスワード確認する。
 
@@ -426,6 +440,7 @@ argocd admin initial-password -n argocd
 2. デプロイする。
 
 ```bash
+kubectl create namespace dev
 kubectl apply -f confs/application.yaml
 ```
 
@@ -433,7 +448,7 @@ TODO: 以下エラーの解決
 
 Failed to load target state: failed to generate manifest for source 1 of 1: rpc error: code = Unknown desc = Get "http://gitlab.example.com:8880/root/42iot.git/info/refs?service=git-upload-pack": dial tcp 127.0.0.1:8880: connect: connection refused
 
-ingressを介しているので、gitlab.example.com が 127.0.0.1 に解決されるとこわれる？
+ingressを介しているので、gitlab.ymori.jp が 127.0.0.1 に解決されるとこわれる？
 
 ## Tips
 
