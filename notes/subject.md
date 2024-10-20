@@ -1,6 +1,6 @@
 # Subject note
 
-K3sとK3s、Vagrantの使い方を学ぶ課題。Ingressを使用したいので、kindではなくK3sを使用する。
+K3sとK3d、Vagrantの使い方を学ぶ課題。Ingressを使用したいので、kindではなくK3sを使用する。
 
 ## Part 1
 
@@ -312,6 +312,33 @@ Argo CDのUIを確認すると、v2に変更されていることが確認でき
 
 ## Bonus
 
+### GitLabのインストール
+
+GitLabの公式のサイトを参考にインストールする。
+
+- [Deploy the GitLab Helm chart](https://docs.gitlab.com/charts/installation/deployment.html#deploy-using-helm)
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:8080 --address 127.0.0.1
+```
+
+#### traefikの削除
+
+k3dのデフォルトのIngress Controllerはtraefikであるが、GitLabのインストール時にはNGINX Ingress Controllerが必要となるため、traefikを削除する。
+traefikを削除しないと、k3dで標準搭載されている`traefik`と`gitlab-nginx-ingress-controller`のポートが競合してしまう。
+
+※GitLab側でtraefikを利用したり、nginx-ingress-controllerのポートを変更したりできそうだが、情報が少ないため、今回はNGINX Ingress Controllerを利用する。
+参考) [Using Traefik](https://docs.gitlab.com/charts/charts/traefik/#fips-compliant-traefik)
+
+```bash
+kubectl delete svc traefik -n kube-system
+```
+
+- `--set global.hosts.https=false`を設定することで、HTTPSを無効にする
+  - 今回の課題ではTLS証明書の設定を省いている
+  - これを設定しないと、サインイン後に`https`にリダイレクトされるため、`422: The change you requested was rejected.`のエラーとなる
+  - [Configure charts using globals](https://docs.gitlab.com/charts/charts/globals.html)
+
 ```bash
 k3d cluster create <cluster-name>
 
@@ -320,6 +347,108 @@ k3d cluster create <cluster-name>
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
+
+#### GitLabへのアクセス
+
+以下コマンドでパスワードを取得する。
+
+```bash
+kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode
+```
+
+- ログイン情報
+  - `http://gitlab.ymori.jp:8880`
+  - username: `root`
+  - password: 上記で取得したパスワード
+
+※ /etc/hosts に `github.ymori.jp` を追加しておく
+
+#### GitLab上でリポジトリを作成する
+
+`git clone http://gitlab.ymori.jp:8880/<username>/<repository>.git`でリポジトリをクローンする。ログイン情報はログインしたときと同じもの。
+
+| 項目 | 設定値 |
+|--|--|
+| Project name | `42iot` |
+| Project URL | `http://gitlab.ymori.jp:8880/root/42iot.git` |
+| Visibility Level | `Public` |
+
+※コマンドラインへのペーストは右クリックでできる。
+
+#### GitLabリポジトリのデプロイトークンを作成する
+
+1. ［Settings］→［Repository］を選択。
+2. ［Deploy tokens］の［Expand］をクリック。
+3.  [add token]をクリックして、デプロイトークンを作成する。
+
+| 項目 | 設定値 |
+| --- | --- |
+| Name | `argocd` |
+| Expiration data | なし |
+| Username | `argocd` |
+| Scope | `read_repository` |
+
+トークンをコピーしておく.
+
+#### Secretリソースを作成する
+
+1. applocation.yamlの以下を作成したGitLabリポジトリのURLに変更する。
+
+```yaml
+stringData:
+  repoURL: http://gitlab.ymori.jp:8880/root/42iot.git
+```
+
+2. confs/secret.yamlの`password`に上記で作成したデプロイトークンを設定する。
+3. SecretリソースをKubernetesに適用する。
+
+```bash
+kubectl apply -f confs/secret.yaml
+```
+
+### Argo CD
+
+#### Argo CDにアクセスする
+
+0. Argo CDのUIにアクセスするためにポートフォワードする。
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 127.0.0.1
+```
+
+1. 初期パスワード確認する。
+
+```bash
+argocd admin initial-password -n argocd
+```
+
+2. Argo CDアクセスする。
+
+- ログイン情報
+  - `http://localhost:8080`
+  - username: `admin`
+  - password: 上記で取得したパスワード
+
+### デプロイマニュフェストを同期するためのApplicationリソースを作成
+
+1. applocation.yamlの以下を作成したGitLabリポジトリのURLに変更する。
+
+```yaml
+    repoURL: http://gitlab.example.com:8880/root/42iot.git
+```
+
+2. デプロイする。
+
+```bash
+kubectl create namespace dev
+kubectl apply -f confs/application.yaml
+```
+
+TODO: 以下エラーの解決
+
+Failed to load target state: failed to generate manifest for source 1 of 1: rpc error: code = Unknown desc = Get "http://gitlab.example.com:8880/root/42iot.git/info/refs?service=git-upload-pack": dial tcp 127.0.0.1:8880: connect: connection refused
+
+ingressを介しているので、gitlab.ymori.jp が 127.0.0.1 に解決されるとこわれる？
 
 ## Tips
 
@@ -334,6 +463,17 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 - dockerのバージョンは最新ですか？
   - `docker --version`で確認
 
+### Windowsの`/etc/hosts`はどこにあるのか
+
+名前解決をさせるためには、`/etc/hosts`に名前解決をさせるためのエントリを追加する必要がある。
+Linuxでは`/etc/hosts`にエントリを追加するが、Windowsでは`C:\Windows\System32\drivers\etc\hosts`にエントリを追加する必要がある。
+WLS上で`/etc/hosts`を編集してもWindows側の`C:\Windows\System32\drivers\etc\hosts`には反映されないので注意する。
+
+PowerShellで`C:\Windows\System32\drivers\etc\hosts`を編集するためのコマンドは以下の通り。
+
+```bash
+ powershell -NoProfile -ExecutionPolicy unrestricted -Command "start notepad C:\Windows\System32\drivers\etc\hosts -verb runas"
+```
 
 ### WindowsでVagrant実行するときの注意
 

@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wil42-playground-application
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # repoURL: http://gitlab-webservice-default.gitlab.svc.cluster.local:8080/root/42iot.git
+    repoURL: https://gitlab.com/ymori06/42-ymori-Inception-of-Things-ArgoCD.git
+    targetRevision: HEAD
+    path: manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
